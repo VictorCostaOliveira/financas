@@ -12,7 +12,6 @@ class UserService
 
   private
     def create_user
-      debugger
       user = User.create(name: @name, email: @email, password: @password)
       if user.errors.present?
         error_response user

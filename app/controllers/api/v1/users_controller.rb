@@ -6,7 +6,6 @@ class Api::V1::UsersController < ApplicationController
 
   def create
     service = UserService.new(user_params).call
-    debugger
     render json: service
   end
 
