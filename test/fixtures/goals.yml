@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  description: MyString
+  end_date: 2018-04-28 17:02:34
+  parcel: 1.5
+  value: 1.5
+
+two:
+  description: MyString
+  end_date: 2018-04-28 17:02:34
+  parcel: 1.5
+  value: 1.5
