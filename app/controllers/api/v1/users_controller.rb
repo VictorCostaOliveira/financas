@@ -1,4 +1,4 @@
-class Api::V1::UsersController < ApplicationController
+class Api::V1::UsersController < ApiController
 
   def new
     User.create(user_params)
@@ -10,6 +10,7 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def show
+    render json: find_user, status: :ok
   end
 
   def delete
