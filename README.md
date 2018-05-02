@@ -22,3 +22,11 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+
+
+Link do trelo com as tarefas estimadas
+
+https://trello.com/b/f22AwiFK/finan%C3%A7as
+
+Esse trabalho foi feito por Victor da Costa e Vitor Mesquita
+
