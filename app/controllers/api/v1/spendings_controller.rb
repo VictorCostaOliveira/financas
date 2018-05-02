@@ -1,5 +1,5 @@
 class Api::V1::SpendingsController < ApiController
-  before_action :find_spending, except: :index,:create
+  before_action :find_spending, except: :index
 
   def index
     spendings = current_user.spendings

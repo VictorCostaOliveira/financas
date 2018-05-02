@@ -1,5 +1,5 @@
 class Api::V1::GoalsController < ApiController
-  before_action :find_goal, except: :index, :create
+  before_action :find_goal, except: :index
   def index
     goals = current_user.goals
     return render json: set_response(204, "No content"), status: :no_content if !goals.present?
