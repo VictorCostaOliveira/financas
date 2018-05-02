@@ -21,14 +21,14 @@ class Api::V1::GoalsController < ApiController
 
     @goal = CalculateEndDateGoalService.new(user: current_user, goal: @goal).call
     return render json: set_response(422, @goal.errors), status: :unprocessable_entity if @goal.errors.present?
-    render json: set_response(200, serialize_resource(goal, GoalSerializer)), status: :ok
+    render json: set_response(200, serialize_resource(@goal, GoalSerializer)), status: :ok
   end
 
   def destroy
     @goal = current_user.goals.find_by(id: params[:id])
     if @goal.present?
       @goal.destroy
-      return render json: set_response(200, "Ok"), status: :ok if @goal.destroyed?
+      return render json: set_response(200, "Goal Deleted"), status: :ok if @goal.destroyed?
       render json: set_response(422, @goal.errors), status: :unprocessable_entity
     else
       render json: set_response(404, "Not Found"), status: :not_found

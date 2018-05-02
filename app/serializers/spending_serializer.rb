@@ -1,6 +1,6 @@
 class SpendingSerializer < ActiveModel::Serializer
 
-  attributes :description, :value, :categories
+  attributes :id, :description, :value, :categories
   has_many :categories
   def categories
     object.categories

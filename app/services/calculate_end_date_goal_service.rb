@@ -18,7 +18,6 @@ class CalculateEndDateGoalService < BaseService
         add_unprocessable_error("Values not allowed")
         return self
       end
-      debugger
       total_months = (value / parcel).to_i
       @goal.end_date = Time.current + total_months.months
       @goal.save
