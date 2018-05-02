@@ -1,55 +1,44 @@
 class Api::V1::GoalsController < ApiController
-  before_action :find_user
-
+  before_action :find_goal, except: :index, :create
   def index
-    goals = @user.goals
-    render json: goals, status: :ok
+    goals = current_user.goals
+    return render json: set_response(204, "No content"), status: :no_content if !goals.present?
+    render json: set_response(200, serialize_resource_list(goals, GoalSerializer)), status: :ok
   end
 
   def create
-    goal = @user.goals.new(goal_params)
-    goal = CalculateEndDateGoalService.new(user: @user, goal: goal).call
-    if goal.errors.present?
-      render json: set_response(422, goal.errors), status: :unprocessable_entity
-    else
-      render json: set_response(200, goal), status: :ok
-    end
+    goal = current_user.goals.new(goal_params)
+    goal = CalculateEndDateGoalService.new(user: current_user, goal: goal).call
+    return render json: set_response(422, goal.errors), status: :unprocessable_entity if goal.errors.present?
+    render json: set_response(200, serialize_resource(goal, GoalSerializer)), status: :ok
   end
 
   def update
-    goal = @user.goals.find_by(id: params[:id])
-    return render json: set_response(404, "Not Found"), status: :not_found unless goal.present?
-    goal.update(goal_params)
-    if goal.errors.present?
-      render json: set_response(422, goals.errors.full_messages), status: :unprocessable_entity
-    else
-      goal = CalculateEndDateGoalService.new(user: @user, goal: goal).call
-    end
-    if goal.errors.present?
-      render json: goal.errors, status: :unprocessable_entity
-    else
-      render json: goal, status: :ok
-    end
+    return render json: set_response(404, "Not Found"), status: :not_found unless @goal.present?
+
+    @goal.update(goal_params)
+    return render json: set_response(422, @goal.errors.full_messages), status: :unprocessable_entity if @goal.errors.present?
+
+    @goal = CalculateEndDateGoalService.new(user: current_user, goal: @goal).call
+    return render json: set_response(422, @goal.errors), status: :unprocessable_entity if @goal.errors.present?
+    render json: set_response(200, serialize_resource(goal, GoalSerializer)), status: :ok
   end
 
   def destroy
-    goal = @user.goals.find_by(id: params[:id])
-    if goal.present?
-      goal.destroy
-      if goal.destroyed?
-        render json: set_response(200, "Ok"), status: :ok
-      else
-        render json: set_response(422, goals.errors), status: :unprocessable_entity
-      end
+    @goal = current_user.goals.find_by(id: params[:id])
+    if @goal.present?
+      @goal.destroy
+      return render json: set_response(200, "Ok"), status: :ok if @goal.destroyed?
+      render json: set_response(422, @goal.errors), status: :unprocessable_entity
     else
       render json: set_response(404, "Not Found"), status: :not_found
     end
   end
 
   def show
-    goal = @user.goals.find_by(id: params[:id])
-    if goal.present?
-      render json: set_response(200, goal), status: :ok
+
+    if @goal.present?
+      render json: set_response(200, serialize_resource(@goal, GoalSerializer)), status: :ok
     else
       render json: set_response(404, "Not Found"), status: :not_found
     end
@@ -58,5 +47,9 @@ class Api::V1::GoalsController < ApiController
   private
     def goal_params
       params.require(:goal).permit(:description, :end_date, :parcel, :value)
+    end
+
+    def find_goal
+      @goal = current_user.goals.find_by(id: params[:id])
     end
 end

@@ -3,8 +3,8 @@ class CreateSpendingService < BaseService
   def initialize(params)
     super()
     @user = params[:user]
-    @spending = params[:spending]
-    @categories = params[:category][:categories]
+    @spending_params = params[:spending]
+    @category_params = params[:category][:categories]
   end
 
   def call
@@ -14,19 +14,20 @@ class CreateSpendingService < BaseService
   private
     def create_spending
       if @user.present?
-        spending = @user.spendings.create(speding_params)
-        spending.categories << category_params[:categories].map {|category| Category.create(name: category[:name])}
+        categories = []
+        spending = nil
+        spending = @user.spendings.new(@spending_params)
+        spending.save
         if spending.errors.present?
-          return spending.errors
+          add_unprocessable_error(spending.errors.full_messages)
+          self
         else
-          render json: spending, status: :ok
+          categories << @category_params.map {|category| Category.create(name: category[:name], user: @user)}
+          spending.categories << categories.flatten
+          spending
         end
       else
-        render json: set_text("User Not found", 404), status: :not_found
+        add_unprocessable_error("Spending user can't be null")
       end
-    end
-
-    def add_unprocessable_error(message)
-      self.errors.push(message)
     end
 end

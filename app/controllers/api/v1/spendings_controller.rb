@@ -1,63 +1,62 @@
 class Api::V1::SpendingsController < ApiController
-  before_action :find_user
+  before_action :find_spending, except: :index,:create
 
   def index
-    spendings = @user.spendings
+    spendings = current_user.spendings
     if spendings.present?
-      render json: spendings, status: :ok
+      render json: set_response(200, serialize_resource_list(spendings, SpendingSerializer)), status: :ok
+    else
+      render json: set_response(204, "No content"), stauts: :no_content
     end
   end
 
   def create
-    service_response = CreateSpendingService.new({user: @user, spending: spending_params, category: category_params}).call
+    service_response = CreateSpendingService.new({user: current_user, spending: spending_params, category: category_params}).call
+    if service_response.errors.present?
+      render json: set_response(422, service_response.errors), status: :unprocessable_entity
+    else
+      render json: set_response(201, serialize_resource(service_response, SpendingSerializer))
+    end
   end
 
   def show
-    spending = Spending.find_by(id: params[:id])
-    render json: set_response(spending), status: :ok
+    if @spending.present?
+      render json: set_response(200, serialize_resource(@spending, SpendingSerializer)), status: :ok
+    else
+      render json: set_response(404, "Expense not found"), stauts: :not_found
+    end
   end
 
   def destroy
-    spending = Spending.find_by(id: params[:id])
-    if spending.present?
-      if spending.destroyed?
-        render json: '', status: :ok
-      else
-        render json: set_text("Unprocessable entity",  422), status: :unprocessable_entity
-      end
+    if @spending.present?
+      @spending.destroy@spending
+      return render json: set_response("Expense had been deleted"), status: :ok if @spending.destroyed?
+      render json: set_response(422, "Unprocessable entity"), status: :unprocessable_entity
     else
-      render json: set_text("Spending Not found", 400), status: :not_found
+      render json: set_response(400, "Expense Not found"), status: :not_found
     end
   end
 
   def update
-    spending = Spending.find_by(id: params[:id])
-    spending.update(spending_params)
-    # TODO
-    # spending.categories.create()
-    render json: spending, status: :ok
+
+    if @spending.present?
+      return render json: set_response(200, serialize_resource(@spending, SpendingSerializer)), status: :ok if @spending.update(spending_params)
+      render json: set_response(422, @spending.errors.full_messages), status: :ok
+    else
+      render json: set_response(404, "Expense not found")
+    end
   end
 
   private
+
+    def find_spending
+      @spending = current_user.spendings.find_by(id: params[:id])
+    end
     def spending_params
       params.require(:spending).permit(:description, :value)
     end
 
     def category_params
       params.permit(categories: [:name])
-    end
-
-    def set_response(param)
-      {
-        spending: param,
-        categories: param.categories
-      }
-    end
-
-    def set_text(message, status)
-      {
-        stats: status,
-        message: message
-      }
     end
 end
